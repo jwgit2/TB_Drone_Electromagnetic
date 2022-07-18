@@ -1,0 +1,3 @@
+Check ground on power supply same potential => minus connected to ground ? 
+take measure
+try battery 9v
