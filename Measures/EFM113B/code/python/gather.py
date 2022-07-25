@@ -11,7 +11,7 @@ import RPi.GPIO as GPIO
 REF = 5.08          # Modify according to actual voltage
                     # external AVDD and AVSS(Default), or internal 2.5V
 range = 5           # Range in kV/m
-resistor = 2.16      # Resistor in kOhm
+resistor = 2.16     # Resistor in kOhm
 
 try:
     ADC = ADS1263.ADS1263()
