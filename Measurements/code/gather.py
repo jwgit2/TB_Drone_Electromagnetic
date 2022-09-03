@@ -10,6 +10,8 @@ import bme_280.gather as BME
 import os
 import sqlite3
 import threading
+import logging
+
 
 ## Constants
 REF = 5.08                                  # Modify according to actual voltage
@@ -18,7 +20,12 @@ RESISTOR = 1                                # RESISTOR in kOhm
 RANGE = 5                                   # Range in kV/m
 VOLTAGE_BATTERY_THRESHOLD_UP = 9.5          # in Volt 
 VOLTAGE_BATTERY_THRESHOLD_DOWN = 9.0        # in Volt
-DB_PATH = os.path.expanduser('~/TB_Drone_Electromagnetic/Measurements/database/EF_DB.db')
+CODE_PATH = os.path.dirname(__file__)
+GIT_PATH = os.path.join(CODE_PATH, '../../')
+DB_PATH = os.path.join(GIT_PATH,'Measurements/database/')
+DB_NAME = 'EF_DB.db'
+CREATE_TABLE = 'create_table.txt'
+TABLE_NAME = 'MEASUREMENTS'
 MS_SLEEP_BME = 2000                         # time between two gathering of BME sensor values
 MS_SLEEP_INA = 2000                         # time between two gathering of INA sensor values
 MS_SLEEP_EFM = 50                           # time between two gathering of EFM sensor values
@@ -39,6 +46,7 @@ stop = 0
 def stop():
     global stop
     input("Press Enter to stop...")
+    print ("ok stop")
     stop = 1
 ## Sleep function to set in millisecond
 def sleepMilliseconds(ms):
@@ -65,8 +73,8 @@ def read_bme():
     global temperature
     global pressure
     global humidity
-
-    while not stop:
+    print("ok bme")
+    while 1:
         try :
             temperature = BME.get_temperature()
             #altitude = BME.get_altitude()
@@ -83,10 +91,11 @@ def read_bme():
 def read_ina():
     # Check battery state through INA219 sensor
     global voltage_battery
-
-    while not stop:
+    print("ok ina")
+    while 1:
         try :
             voltage_battery = INA.get_battery_voltage()
+            print("INA %d", voltage_battery)
         except IOError as e:
             print ("Error INA :")
             print(e)
@@ -97,8 +106,8 @@ def read_ina():
 def read_efm():
     # gather EFM measurement
     global voltage_AD
-    
-    while not stop:
+    print("ok efm")
+    while 1:
         try :
             voltage_AD = EFM.AD_gather()
 
@@ -119,12 +128,15 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
     else : 
         range = input_range
     stop = 0
+    print("thr3ead creation")
     bme = threading.Thread(target=read_bme, args=())
     efm = threading.Thread(target=read_efm, args=())
     ina = threading.Thread(target=read_ina, args=())
+    print("thread start")
     bme.start()
     efm.start()
     ina.start()
+    print("insert")
     while not stop:
         # get timestamp
         dt = datetime.now() #(timezone.utc)
@@ -132,24 +144,29 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
         ms = int(dt.microsecond / 1000)
         try : 
             # insert into database
-            cursorObject.execute("INSERT INTO MEASUREMENTS values(?,?,?,?,?,?,?,?,?,?,?,?)", (id, timestamp, ms, comment, range, resistor, temperature, pressure, humidity, altitude, voltage_AD, voltage_battery))
+            cursorObject.execute("INSERT INTO "+ TABLE_NAME + " values(?,?,?,?,?,?,?,?,?,?,?,?)", (id, timestamp, ms, comment, range, resistor, temperature, pressure, humidity, altitude, voltage_AD, voltage_battery))
             conn.commit()
         except TypeError as e:
             print(e)
         sleepMilliseconds(MS_SLEEP_INSERT)
-    
+    print("fin")
     bme.join()
     efm.join()
     ina.join()
 
 def gather(comment):
+    format = "%(asctime)s: %(message)s"
+    logging.basicConfig(format=format, level=logging.INFO,
+
+                        datefmt="%H:%M:%S")
+
     EFM.AD_init()
     try : 
-        conn = create_connection(DB_PATH)
-        with open('../database/create_table.txt') as f:
+        conn = create_connection(DB_PATH + DB_NAME)
+        with open(DB_PATH + CREATE_TABLE) as f:
             conn.execute(f.read())
         cursorObject = conn.cursor()
-        cursorObject.execute("SELECT MAX(ID_MEASUREMENT_SET) FROM MEASUREMENTS;")
+        cursorObject.execute("SELECT MAX(ID_MEASUREMENT_SET) FROM " + TABLE_NAME + ";")
         id = cursorObject.fetchone()[0]
         if (id == None):
             id = 1
