@@ -15,8 +15,9 @@ ADC = ADS1263.ADS1263()
 
 def AD_init():
     if (ADC.ADS1263_init_ADC1('ADS1263_7200SPS') == -1):
-        exit()
+        return 0
     ADC.ADS1263_SetMode(0)
+    return 1
 
 def AD_gather ():
     try:
@@ -24,10 +25,10 @@ def AD_gather ():
         ADC_0 = REF*2 - ADC_Value * REF / 0x80000000
         ADC_n0 = (ADC_Value * REF / 0x7fffffff)
         if(ADC_Value>>31 ==1):
-            print(-ADC_0)
+            #print(-ADC_0)
             return -ADC_0
         else:
-            print(ADC_n0)
+            #print(ADC_n0)
             return ADC_n0
 
     except IOError as e:
