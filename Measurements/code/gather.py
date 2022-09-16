@@ -11,8 +11,7 @@ import os
 import sqlite3
 import threading
 import logging
-
-
+###### AJOUTER LIMITEUR 9V ######
 ## Constants
 REF = 5.08                                  # Modify according to actual voltage
                                             # external AVDD and AVSS(Default), or internal 2.5V
