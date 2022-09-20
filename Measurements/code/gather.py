@@ -7,6 +7,7 @@ import RPi.GPIO as GPIO
 import EFM113B.gather as EFM
 import ina219.gather as INA
 import bme_280.gather as BME
+import Ardusimple.gather as POS
 import os
 import sqlite3
 import threading
@@ -63,7 +64,7 @@ def create_connection(db_file):
     try:
         conn = sqlite3.connect(db_file)
     except Exception as e:
-        print(e)
+        print(str(e))
     return conn
     
 ## check bme measurements and stock them in global variables
@@ -80,9 +81,9 @@ def read_bme():
             pressure = BME.get_pressure()
             humidity = BME.get_humidity()
         
-        except IOError as e:
+        except Exception as e:
             print ("Error BME :")
-            print(e)
+            print(str(e))
             return 0
         sleepMilliseconds(MS_SLEEP_BME)
 
@@ -97,7 +98,7 @@ def read_ina():
             print("INA %d", voltage_battery)
         except IOError as e:
             print ("Error INA :")
-            print(e)
+            print(str(e))
             return 0
         sleepMilliseconds(MS_SLEEP_INA)
 
@@ -110,9 +111,21 @@ def read_efm():
         try :
             voltage_AD = EFM.AD_gather()
 
-        except IOError as e:
+        except Exception as e:
             print ("Error EFM :")
-            print(e)
+            print(str(e))
+            return 0
+        sleepMilliseconds(MS_SLEEP_EFM)
+
+def read_pos():
+    # gather RTK position (in separate file)
+    print("ok position")
+    while 1:
+        try :
+            POS.get_position()
+        except Exception as e:
+            print ("Error position :")
+            print(str(e))
             return 0
         sleepMilliseconds(MS_SLEEP_EFM)
 
@@ -131,10 +144,12 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
     bme = threading.Thread(target=read_bme, args=())
     efm = threading.Thread(target=read_efm, args=())
     ina = threading.Thread(target=read_ina, args=())
+    pos = threading.Thread(target=read_pos, args=())
     print("thread start")
     bme.start()
     efm.start()
     ina.start()
+    pos.start()
     print("insert")
     while not stop:
         # get timestamp
@@ -152,6 +167,7 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
     bme.join()
     efm.join()
     ina.join()
+    pos.join()
 
 def gather(comment):
     format = "%(asctime)s: %(message)s"
@@ -181,7 +197,7 @@ def gather(comment):
         print(e)
     EFM.AD_stop()
 
-gather("test2")
+gather("test RTK")
 
     
     
