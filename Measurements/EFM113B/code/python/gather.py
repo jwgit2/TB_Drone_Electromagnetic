@@ -11,7 +11,7 @@ import RPi.GPIO as GPIO
 REF = 5.08          # Modify according to actual voltage
                     # external AVDD and AVSS(Default), or internal 2.5V
 range = 5           # Range in kV/m
-resistor = 0.51     # Resistor in kOhm
+resistor = 1     # Resistor in kOhm
 i = 0
 alpha = 0.9
 try:
@@ -21,7 +21,7 @@ try:
     ADC.ADS1263_SetMode(0)
     
     start = datetime.now()
-    filename = start.strftime("/home/tbjw/python/results/%Y%m%d_%H_%M_%S.data")
+    filename = start.strftime("/home/tbjw/TB_Drone_Electromagnetic/Measurements/EFM113B/code/python/results/%Y%m%d_%H_%M_%S.data")
     #print(start.strftime("%m/%d/%Y") + ",  Range is " + str(range) + "[V/m], Resistor is " + str(resistor) + "[kOhm]")
     #print("Timestamp \tvoltage[V] \tcurrent[mA] \tfield strength[V/m]")
     res_mean = 0
@@ -42,7 +42,7 @@ try:
             res =  dt.strftime("%H:%M:%S") + "." + "{0:0=3d}".format(int(dt.microsecond / 1000))  + "\t%lf\t%lf\t%lf" %(ADC_n0, ADC_n0/resistor,  range*ADC_n0/resistor * 1000)   # 32bit
             res_mean = res_mean + range*ADC_n0/resistor * 1000
             
-        if (i >=50):
+        if (i >=10):
             print ( " mean : %lf V/m" %(res_mean/i) )
             i = 0
             res_mean = 0

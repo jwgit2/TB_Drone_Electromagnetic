@@ -9,8 +9,8 @@ import RPi.GPIO as GPIO
 
 REF = 5.08          # Modify according to actual voltage
                     # external AVDD and AVSS(Default), or internal 2.5V
-range = 5           # Range in kV/m
-resistor = 2.2      # Resistor in kOhm
+range = 5           # Range in kV/m/A
+resistor = 1        # Resistor in kOhm
 
 try:
     ADC = ADS1263.ADS1263()
@@ -19,8 +19,8 @@ try:
     ADC.ADS1263_SetMode(0)
     
     start = datetime.now()
-    print(start.strftime("%m/%d/%Y") + ",  Range is " + str(range) + "[kV/m], Resistor is " + str(resistor) + "[kOhm]")
-    print("Timestamp \tvoltage[V] \tcurrent[mA] \tfield strength[kV/m]")
+    print(start.strftime("%m/%d/%Y") + ",  Range is " + str(range) + "[kV/m/A], Resistor is " + str(resistor) + "[kOhm]")
+    print("Timestamp \tvoltage[V] \tcurrent[mA] \tfield strength[V/m]")
     while(1):
         ADC_Value = ADC.ADS1263_GetChannalValue(0)   # get ADC1 value
         ADC_0 = REF*2 - ADC_Value * REF / 0x80000000
@@ -29,9 +29,9 @@ try:
         dt = datetime.now()
         #Timestamp,voltage,current,volt/meter
         if(ADC_Value>>31 ==1):
-            res =  dt.strftime("%H:%M:%S") + "." + "{0:0=3d}".format(int(dt.microsecond / 1000)) + "\t%lf\t%lf\t%lf" %(-ADC_0, (-ADC_0)/resistor,  range*(-ADC_0)/resistor)
+            res =  dt.strftime("%H:%M:%S") + "." + "{0:0=3d}".format(int(dt.microsecond / 1000)) + "\t%lf\t%lf\t%lf" %(-ADC_0, (-ADC_0)/resistor,  range*(-ADC_0)/resistor * 1000)
         else:
-            res =  dt.strftime("%H:%M:%S") + "." + "{0:0=3d}".format(int(dt.microsecond / 1000))  + "\t%lf\t%lf\t%lf" %(ADC_n0, ADC_n0/resistor,  range*ADC_n0/resistor)   # 32bit
+            res =  dt.strftime("%H:%M:%S") + "." + "{0:0=3d}".format(int(dt.microsecond / 1000))  + "\t%lf\t%lf\t%lf" %(ADC_n0, ADC_n0/resistor,  range*ADC_n0/resistor * 1000)   # 32bit
         print (res)
 
         time.sleep(0.050)

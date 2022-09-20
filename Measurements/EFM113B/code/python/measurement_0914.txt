@@ -1,0 +1,10 @@
+environ 10h30 : test off
+10h34 : petit redémarrage avec GND sur downplate
+10h35 : retenter avec cache orange => on est relativement proche de 0
+10h36 : augmentation de la fréquence de calcul de la moyenne à 10
+11:59 : test avec feuille alu off
+12:06 : après recalibration feuille alu off
+16:30 (environ) : test sans mise à terre 
+16h46 : test avec mise à terre
+16:50 : test en miuvement
+16:56 : test alu
