@@ -14,12 +14,12 @@ import threading
 import logging
 ###### AJOUTER LIMITEUR 9V ######
 ## Constants
-REF = 5.08                                  # Modify according to actual voltage
-                                            # external AVDD and AVSS(Default), or internal 2.5V
-RESISTOR = 1                                # RESISTOR in kOhm
-RANGE = 5                                   # Range in kV/m
-VOLTAGE_BATTERY_THRESHOLD_UP = 9.5          # in Volt 
-VOLTAGE_BATTERY_THRESHOLD_DOWN = 9.0        # in Volt
+REF = 5.08                                      # Modify according to actual voltage
+                                                # external AVDD and AVSS(Default), or internal 2.5V
+RESISTOR = 1                                    # RESISTOR in kOhm
+RANGE = 5                                       # Range in kV/m
+VOLTAGE_BATTERY_THRESHOLD_CRITICAL = 11.5       # in Volt 
+VOLTAGE_BATTERY_THRESHOLD_DOWN = 11.3           # in Volt
 CODE_PATH = os.path.dirname(__file__)
 GIT_PATH = os.path.join(CODE_PATH, '../../')
 DB_PATH = os.path.join(GIT_PATH,'Measurements/database/')
@@ -40,6 +40,7 @@ altitude = 0
 pressure = 0
 humidity = 0
 voltage_AD = 0
+electric_field = 0
 dt = 0
 stop = 0
 
@@ -76,10 +77,10 @@ def read_bme():
     print("ok bme")
     while 1:
         try :
-            temperature = BME.get_temperature()
+            temperature = float("{:.2f}".format(BME.get_temperature()))
             #altitude = BME.get_altitude()
-            pressure = BME.get_pressure()
-            humidity = BME.get_humidity()
+            pressure = float("{:.2f}".format(BME.get_pressure()))
+            humidity = float("{:.2f}".format(BME.get_humidity()))
         
         except Exception as e:
             print ("Error BME :")
@@ -91,10 +92,9 @@ def read_bme():
 def read_ina():
     # Check battery state through INA219 sensor
     global voltage_battery
-    print("ok ina")
     while 1:
         try :
-            voltage_battery = INA.get_battery_voltage()
+            voltage_battery = float("{:.2f}".format(INA.get_battery_voltage()))
             print("INA %d", voltage_battery)
         except IOError as e:
             print ("Error INA :")
@@ -106,11 +106,14 @@ def read_ina():
 def read_efm():
     # gather EFM measurement
     global voltage_AD
-    print("ok efm")
+    global electric_field
+    global range
+    global resistor
     while 1:
-        try :
+        try:
             voltage_AD = EFM.AD_gather()
-
+            # Electric field is setted with voltage * range by resistor to get [kV/m] and multiplied by 1000 to get [V/m]
+            electric_field = float("{:.2f}".format(voltage_AD, range*(voltage_AD)/resistor * 1000))
         except Exception as e:
             print ("Error EFM :")
             print(str(e))
@@ -140,7 +143,7 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
     else : 
         range = input_range
     stop = 0
-    print("thr3ead creation")
+    print("thread creation")
     bme = threading.Thread(target=read_bme, args=())
     efm = threading.Thread(target=read_efm, args=())
     ina = threading.Thread(target=read_ina, args=())
@@ -158,7 +161,7 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
         ms = int(dt.microsecond / 1000)
         try : 
             # insert into database
-            cursorObject.execute("INSERT INTO "+ TABLE_NAME + " values(?,?,?,?,?,?,?,?,?,?,?,?)", (id, timestamp, ms, comment, range, resistor, temperature, pressure, humidity, altitude, voltage_AD, voltage_battery))
+            cursorObject.execute("INSERT INTO "+ TABLE_NAME + " values(?,?,?,?,?,?,?,?,?,?,?,?)", (id, timestamp, ms, comment, range, resistor, temperature, pressure, humidity, electric_field, voltage_battery))
             conn.commit()
         except TypeError as e:
             print(e)

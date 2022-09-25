@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<meta http-equiv="refresh" content="1" >
 <head>
 <title>EF Gatherer</title>
 <meta charset="UTF-8">
@@ -39,7 +40,6 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
             <td><i class="fa fa-thermometer-half w3-text-red w3-large"> Temparature [°C]</i></td>
             <td><i class="fa fa-cloud w3-text-blue w3-large"> Pressure [Pa]</i></td>
             <td><i class="fa fa-shower w3-text-red w3-large"> Humidity [%]</i></td>
-            <td><i class="fa fa-area-chart w3-text-green w3-large"> Altitude [m]</i></td>
             <td><i class="fa fa-location-arrow w3-text-green w3-large"> Coordinates X</i></td>
             <td><i class="fa fa-location-arrow w3-text-green w3-large"> Coordinates Y</i></td>
             <td><i class="fa fa-location-arrow w3-text-green w3-large"> Coordinates Z</i></td>
@@ -55,7 +55,6 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
             <td><i>{{data.TEMPERATURE}}</i></td>
             <td><i>{{data.PRESSURE}}</i></td>
             <td><i>{{data.HUMIDITY}}</i></td>
-            <td><i>{{data.ALTITUDE}}</i></td>
             <td><i>{{data.TEMPERATURE}}</i></td>
             <td><i>{{data.TEMPERATURE}}</i></td>
             <td><i>{{data.TEMPERATURE}}</i></td>
@@ -72,13 +71,13 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
   <hr>
 
   <div class="w3-container">
-    <button class="w3-button w3-dark-grey">Download last set  <i class="fa fa-arrow-right"></i>
+    <button class="w3-button w3-dark-grey" onclick="location.href='/lastset';">Download last set  <i class="fa fa-arrow-right"></i>
       <form action = "/reload" method = "GET"></form>
     </button>
   </div>
   <hr>
   <div class="w3-container">
-    <button class="w3-button w3-dark-grey">Download all sets  <i class="fa fa-arrow-right"></i></button>
+    <button class="w3-button w3-dark-grey" onclick="location.href='/fullset';">Download all sets  <i class="fa fa-arrow-right"></i></button>
   </div>
   <hr>
   <div class="w3-container">
