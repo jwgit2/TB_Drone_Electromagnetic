@@ -12,6 +12,7 @@ import os
 import sqlite3
 import threading
 import logging
+from subprocess import call
 ###### AJOUTER LIMITEUR 9V ######
 ## Constants
 REF = 5.08                                      # Modify according to actual voltage
@@ -42,13 +43,16 @@ humidity = 0
 voltage_AD = 0
 electric_field = 0
 dt = 0
-stop = 0
+isSector = False
+stop = False
+## Classes
 
+## Functions
 def stop():
     global stop
     input("Press Enter to stop...")
-    print ("ok stop")
-    stop = 1
+    stop = True
+
 ## Sleep function to set in millisecond
 def sleepMilliseconds(ms):
   """ Delay milliseconds using time.sleep(). """
@@ -74,8 +78,9 @@ def read_bme():
     global temperature
     global pressure
     global humidity
+    global stop
     print("ok bme")
-    while 1:
+    while not stop:
         try :
             temperature = float("{:.2f}".format(BME.get_temperature()))
             #altitude = BME.get_altitude()
@@ -88,14 +93,18 @@ def read_bme():
             return 0
         sleepMilliseconds(MS_SLEEP_BME)
 
-## check ina measurement and stock them in global variable
+##check ina measurement and stock them in global variable
 def read_ina():
     # Check battery state through INA219 sensor
     global voltage_battery
-    while 1:
+    global VOLTAGE_BATTERY_THRESHOLD_DOWN
+    global isSector
+    global stop
+    while not stop:
         try :
             voltage_battery = float("{:.2f}".format(INA.get_battery_voltage()))
-            print("INA %d", voltage_battery)
+            if voltage_battery <= VOLTAGE_BATTERY_THRESHOLD_DOWN and not isSector:
+                call("sudo nohup shutdown -h now", shell=True)
         except IOError as e:
             print ("Error INA :")
             print(str(e))
@@ -109,7 +118,8 @@ def read_efm():
     global electric_field
     global range
     global resistor
-    while 1:
+    global stop
+    while not stop:
         try:
             voltage_AD = EFM.AD_gather()
             # Electric field is setted with voltage * range by resistor to get [kV/m] and multiplied by 1000 to get [V/m]
@@ -119,21 +129,26 @@ def read_efm():
             print(str(e))
             return 0
         sleepMilliseconds(MS_SLEEP_EFM)
-
-def read_pos():
-    # gather RTK position (in separate file)
-    print("ok position")
-    while 1:
-        try :
-            POS.get_position()
-        except Exception as e:
-            print ("Error position :")
-            print(str(e))
-            return 0
-        sleepMilliseconds(MS_SLEEP_EFM)
+## gather RTK position (in separate file)
+def read_pos(id, comment):
+    global stop
+    try :
+        POS.get_position(id, comment)
+        while True:
+            if stop:
+                print("Stop position")
+                break
+        #POS.stop()
+    except Exception as e:
+        print ("Error position :")
+        print(str(e))
+        return 0
 
 ## thread launchers for sensors data gathering
 def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
+    global resistor
+    global RESISTOR
+    global stop
     if (input_resistor <= 0) :
         resistor = RESISTOR
     else :
@@ -142,18 +157,17 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
         range = RANGE
     else : 
         range = input_range
-    stop = 0
+    stop = False
     print("thread creation")
     bme = threading.Thread(target=read_bme, args=())
     efm = threading.Thread(target=read_efm, args=())
     ina = threading.Thread(target=read_ina, args=())
-    pos = threading.Thread(target=read_pos, args=())
+    pos = threading.Thread(target=read_pos, args=(id, comment))
     print("thread start")
     bme.start()
     efm.start()
     ina.start()
     pos.start()
-    print("insert")
     while not stop:
         # get timestamp
         dt = datetime.now() #(timezone.utc)
@@ -161,28 +175,25 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
         ms = int(dt.microsecond / 1000)
         try : 
             # insert into database
-            cursorObject.execute("INSERT INTO "+ TABLE_NAME + " values(?,?,?,?,?,?,?,?,?,?,?,?)", (id, timestamp, ms, comment, range, resistor, temperature, pressure, humidity, electric_field, voltage_battery))
+            cursorObject.execute("INSERT INTO "+ TABLE_NAME + " values(?,?,?,?,?,?,?,?,?,?,?,?)", (id, timestamp, ms, comment, range, resistor, temperature, pressure, humidity, voltage_AD, electric_field, voltage_battery))
             conn.commit()
         except TypeError as e:
             print(e)
         sleepMilliseconds(MS_SLEEP_INSERT)
-    print("fin")
+    print("STOP")
     bme.join()
     efm.join()
     ina.join()
     pos.join()
 
-def gather(comment):
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO,
-
-                        datefmt="%H:%M:%S")
-
+def start(comment, runningOnSector):
+    global isSector 
+    isSector = runningOnSector
     EFM.AD_init()
     try : 
         conn = create_connection(DB_PATH + DB_NAME)
         with open(DB_PATH + CREATE_TABLE) as f:
-            conn.execute(f.read())
+            conn.executescript(f.read())
         cursorObject = conn.cursor()
         cursorObject.execute("SELECT MAX(ID_MEASUREMENT_SET) FROM " + TABLE_NAME + ";")
         id = cursorObject.fetchone()[0]
@@ -200,7 +211,12 @@ def gather(comment):
         print(e)
     EFM.AD_stop()
 
-gather("test RTK")
+
+def main():
+    start("Essai vol 1", True)
+
+if __name__ == "__main__":
+    main()
 
     
     

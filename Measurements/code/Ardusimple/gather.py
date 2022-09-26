@@ -4,22 +4,25 @@ import serial
 import sys
 import time
 import sqlite3
+import os
+from datetime import datetime, date
 
 ## Constants
 PORT_NAME = "ttyACM0"
 BAUD_RATE = "115200"
 ENCODER = 'latin1'
-QUALITY_CODE = 4
+QUALITY_CODE = str(4)
 CODE_PATH = os.path.dirname(__file__)
 GIT_PATH = os.path.join(CODE_PATH, '../../../')
 DB_PATH = os.path.join(GIT_PATH,'Measurements/database/')
 DB_NAME = 'EF_DB.db'
 CREATE_TABLE = 'create_table.txt'
-TABLE_NAME = 'MEASUREMENTS'
+TABLE_NAME = 'POSITION'
 
 ## Globals
 Warning_Xbee = False
 Warning_Data = False
+Stop = False
 
 ## Classes
 class bcolors:
@@ -33,7 +36,30 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+class Timestamp_ms:
+    def __init__(self, timestamp, ms):
+        self.timestamp = timestamp
+        self.ms = ms
+    def __str__(self):
+        return f"{self.timestamp} , {str(self.ms)}"
+
+class Position:
+    def __init__(self, timestamp, ms, pos_x, pos_y, pos_z):
+        self.timestamp = timestamp
+        self.ms = ms
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.pos_z = pos_z
+    def __str__(self):
+        return f"{self.timestamp} , {str(self.ms)} , {str(self.pos_x)} , {str(self.pos_y)} , {str(self.pos_z)}"
+
+
 ## Functions
+
+# Externally callable function to stop the process
+def stop():
+    global stop
+    stop = True
 
 # Database connection function
 def create_connection(db_file):
@@ -77,12 +103,15 @@ def ask4observationGPS(ser):
     
     gnss_bin_data = ser.readline()
     gnss_asc_data = gnss_bin_data.decode(ENCODER)
+    print(gnss_asc_data)
     if isGGA(gnss_asc_data):
-        if isRTK(gnss_asc_data) == q:
-            return [readPositionFromGGA(gnss_asc_data),readTimeFromGGA(gnss_asc_data),time.time()]
+        print(gnss_asc_data)
+        if isRTK(gnss_asc_data):
+            position = readPositionFromGGA(gnss_asc_data)
+            return position #[readPositionFromGGA(gnss_asc_data),readTimeFromGGA(gnss_asc_data),time.time()]
         else:
-            return gnss_asc_data
-    return False
+            return None
+    return None
 
 def isGGA(trame):
     if trame.split(',')[0] == '$GNGGA':
@@ -101,40 +130,44 @@ def readPositionFromGGA(trame):
     lon = trame.split(',')[4] #str
     lon = float(lon[0:3]) + float(lon[3:])/60 #degres décimal float
     alt = float(trame.split(',')[9])+float(trame.split(',')[11]) #float on ellipsoide wgs84 (correction du faux geoide)
-    return [format(lat,".8f"), format(lon,".8f"), format(alt,".3f")]
+    timestamp_ms = readTimeFromGGA(trame)
+    position = Position(timestamp_ms.timestamp, timestamp_ms.ms, lat, lon, alt)
+    return position
+    #[format(lat,".8f"), format(lon,".8f"), format(alt,".3f")]
 
 def readTimeFromGGA(trame):
     time = trame.split(',')[1] #str
-    SecondUTC = int(time[0:2])*3600 + int(time[2:4])*60 + int(time[4:6]) + int(time[7:9])/100
-    return format(float(SecondUTC),".3f")
+    timestamp_str = str(date.today().year) + "-" + str(date.today().month) + "-" + str(date.today().day) + " " + str(int(time[0:2]) + 2) + ":" + time[2:4] + ":" + time[4:6]
+    dt = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+    
+    return Timestamp_ms(dt.strftime("%Y-%m-%d %H:%M:%S"), int(time[7:9])/100) #format(float(SecondUTC),".3f")
 
  
-def get_position(id, comment, range, resistor):
+def get_position(id, comment):
     global Warning_Data
     global PORT_NAME
     global BAUD_RATE
+    global Stop
     portXbee = '/dev/' + PORT_NAME
     ser_GPS = openXbee(portXbee,BAUD_RATE)
-    while True:
+    while not Stop:
         while not ser_GPS:
             ser_GPS = openXbee(portXbee, BAUD_RATE)
         if ser_GPS:
             try: 
                 data_GPS = ask4observationGPS(ser_GPS)
                 if (data_GPS):
-                    print (data_GPS)
                     Warning_Data = False
                     conn = create_connection(DB_PATH + DB_NAME)
-                    with open(DB_PATH) as f:
-                        conn.execute(f.read())
                     cursorObject = conn.cursor()
                     try : 
-                    # insert into database
-                        cursorObject.execute("INSERT INTO "+ TABLE_NAME + " values(?,?,?,?,?,?,?,?,?,?,?,?)", (id, timestamp, ms, comment, range, resistor, temperature, pressure, humidity, voltage_AD, voltage_battery))
+                        # insert into database
+                        cursorObject.execute("INSERT INTO "+ TABLE_NAME + " values(?,?,?,?,?,?,?)", (id, data_GPS.timestamp, int(data_GPS.ms), comment, data_GPS.pos_x, data_GPS.pos_y , data_GPS.pos_z))
                         conn.commit()
+                        conn.close()
                     except TypeError as e:
                         print(e)
             except Exception as e:
                 if not Warning_Data:
-                    print(f'{bcolors.WARNING}[Warning] No data from GPS.{bcolors.ENDC}')
+                    print(f'{bcolors.WARNING}[Warning] No data from GPS.{bcolors.ENDC}' + str(e))
                     Warning_Data = True

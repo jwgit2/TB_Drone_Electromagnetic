@@ -7,7 +7,6 @@ import os
 import sqlite3
 import csv
 #import ../../Measurements/code
-
 # Global variables
 WEB_PATH = os.path.dirname(__file__)
 GIT_PATH = os.path.join(WEB_PATH, '../')
@@ -129,6 +128,7 @@ def dllasttset():
 @app.route('/start')
 def start_recording():
     
+    os.system("sudo python3 code/code/gather.py")
     measurements = Measurements.query.all()
     return render_template('index.html', measurements=measurements)
     
