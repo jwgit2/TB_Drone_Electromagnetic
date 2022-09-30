@@ -9,4 +9,3 @@ sudo apt-get install ttf-wqy-zenhei
 sudo apt-get install python-pip 
 sudo pip install RPi.GPIO
 sudo pip install spidev
-sudo reboot now
