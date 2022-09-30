@@ -1,68 +1,96 @@
 <!DOCTYPE html>
 <html>
-<meta http-equiv="refresh" content="1" >
+<meta http-equiv="refresh" content="3">
+
 <head>
-<title>EF Gatherer</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
-</style>
+  <title>EF Gatherer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    html,
+    body,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+      font-family: "Raleway", sans-serif
+    }
+  </style>
 </head>
+
 <body class="w3-light-grey">
 
-<!-- Top container -->
-<div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
-  <span class="w3-bar-item w3-left">EF Gatherer</span>
-</div>
+  <!-- Top container -->
+  <div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
+    <span class="w3-bar-item w3-left">EF Gatherer</span>
+  </div>
 
-<!-- !PAGE CONTENT! -->
-<div class="w3-main" style="margin-left:10px;margin-top:43px;">
+  <!-- !PAGE CONTENT! -->
+  <div class="w3-main" style="margin-left:10px;margin-top:43px;">
 
-  <!-- Header -->
-  <header class="w3-container" style="padding-top:22px">
-    <h5><b>Last recorded values :</b></h5>
-  </header>
-  
+    <!-- Header -->
+    <header class="w3-container" style="padding-top:22px">
+      <h5><b>Last recorded values :</b></h5>
+    </header>
+
     <div class="w3-panel">
-    <div class="w3-row-padding" style="margin:0px">
-      
+      <div class="w3-row-padding" style="margin:0px">
+        <tr>
+          <td>
+            <button class="w3-button w3-dark-grey" onclick="location.href='/lastset';">Download last set <i
+                class="fa fa-download"></i>
+            </button>
+          </td>
+          <td>
+            <button class="w3-button w3-dark-grey" onclick="location.href='/fullset';">Download all sets <i
+                class="fa fa-download"></i>
+            </button>
+          </td>
+          <td>
+            <button class="w3-button w3-dark-grey" onclick="location.href='/start';">Start recording <i
+                class="fa fa-arrow-right"></i></button>
+          </td>
+        </tr>
+      </div>
+      <hr>
+
       <div class="Tab">
         <table class="w3-table w3-striped w3-white">
           <tr>
-            <td><i class="fa fa-comment w3-text-blue w3-large"> Timestamp</i></td>
-            <td><i class="fa fa-comment w3-text-blue w3-large"> Comment</i></td>
-            <td><i class="fa fa-wifi w3-text-red w3-large"> Range [kV/m/A]</i></td>
-            <td><i class="fa fa-rebel w3-text-yellow w3-large"> Resistor [kOhms]</i></td>
-            <td><i class="fa fa-thermometer-half w3-text-red w3-large"> Temparature [°C]</i></td>
-            <td><i class="fa fa-cloud w3-text-blue w3-large"> Pressure [Pa]</i></td>
-            <td><i class="fa fa-shower w3-text-red w3-large"> Humidity [%]</i></td>
-            <td><i class="fa fa-location-arrow w3-text-green w3-large"> Coordinates X</i></td>
-            <td><i class="fa fa-location-arrow w3-text-green w3-large"> Coordinates Y</i></td>
-            <td><i class="fa fa-location-arrow w3-text-green w3-large"> Coordinates Z</i></td>
-            <td><i class="fa fa-bolt w3-text-green w3-large"> Voltage EFM [V]</i></td>
-            <td><i class="fa fa-bolt w3-text-green w3-large"> Electric field [kV/m]</i></td>
+            <td><i class="fa fa-clock-o w3-text-blue w3-large"></i></td>
+            <td><i class="fa fa-comment w3-text-blue w3-large"></i></td>
+            <td><i class="fa fa-wifi w3-text-red w3-large">[kV/m]</i></td>
+            <td><i class="fa fa-rebel w3-text-yellow w3-large">[kΩ]</i></td>
+            <td><i class="fa fa-thermometer-half w3-text-red w3-large">[°C]</i></td>
+            <td><i class="fa fa-cloud w3-text-blue w3-large">[hPa]</i></td>
+            <td><i class="fa fa-shower w3-text-red w3-large">[%]</i></td>
+            <td><i class="fa fa-location-arrow w3-text-green w3-large"> X</i></td>
+            <td><i class="fa fa-location-arrow w3-text-green w3-large"> Y</i></td>
+            <td><i class="fa fa-location-arrow w3-text-green w3-large"> Z</i></td>
+            <td><i class="fa fa-bolt w3-text-green w3-large"> [V]</i></td>
+            <td><i class="fa fa-bolt w3-text-green w3-large"> E-field [kV/m]</i></td>
           </tr>
           {% for data in measurements %}
           <tr>
-            <td><i>{{data.MEASUREMENT_DATETIME}} - {{data.MEASUREMENT_MS}}</i></td>
-            <td><i>{{data.COMMENT}}</i></td>
-            <td><i>{{data.RANGE_VM}}</i></td>
-            <td><i>{{data.RESISTOR}}</i></td>
-            <td><i>{{data.TEMPERATURE}}</i></td>
-            <td><i>{{data.PRESSURE}}</i></td>
-            <td><i>{{data.HUMIDITY}}</i></td>
-            <td><i>{{data.TEMPERATURE}}</i></td>
-            <td><i>{{data.TEMPERATURE}}</i></td>
-            <td><i>{{data.TEMPERATURE}}</i></td>
-            <td><i>{{data.VOLTAGE_EFM}}</i></td>
-            <td><i>{{data.VOLTAGE_EFM}}</i></td>
+            <td><i><center>{{data.MEASUREMENT_DATETIME}} - {{data.MEASUREMENT_MS}}</center></i></td>
+            <td><i><center>{{data.COMMENT}}</center></i></td>
+            <td><i><center>{{data.RANGE_VM}}</center></i></td>
+            <td><i><center>{{data.RESISTOR}}</center></i></td>
+            <td><i><center>{{data.TEMPERATURE}}</center></i></td>
+            <td><i><center>{{data.PRESSURE}}</center></i></td>
+            <td><i><center>{{data.HUMIDITY}}</center></i></td>
+            <td><i><center>{{data.TEMPERATURE}}</center></i></td>
+            <td><i><center>{{data.TEMPERATURE}}</center></i></td>
+            <td><i><center>{{data.TEMPERATURE}}</center></i></td>
+            <td><i><center>{{data.VOLTAGE_EFM}}</center></i></td>
+            <td><i><center>{{"$%.2f"|format(data.VOLTAGE_EFM * data.RANGE_VM / data.RESISTOR|float)}}</center></i></td>
           </tr>
           {% else %}
-            <h5>No data found</h5>
+          <h5>No data found</h5>
           {% endfor%}
         </table>
       </div>
@@ -70,20 +98,6 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
   </div>
   <hr>
 
-  <div class="w3-container">
-    <button class="w3-button w3-dark-grey" onclick="location.href='/lastset';">Download last set  <i class="fa fa-arrow-right"></i>
-      <form action = "/reload" method = "GET"></form>
-    </button>
-  </div>
-  <hr>
-  <div class="w3-container">
-    <button class="w3-button w3-dark-grey" onclick="location.href='/fullset';">Download all sets  <i class="fa fa-arrow-right"></i></button>
-  </div>
-  <hr>
-  <div class="w3-container">
-    <button class="w3-button w3-dark-grey">Start recording <i class="fa fa-arrow-right"></i></button>
-  </div>
-  <hr>
 
   <!-- Footer -->
   <footer class="w3-container w3-padding-16 w3-light-grey">
@@ -92,14 +106,15 @@ html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
   </footer>
 
   <!-- End page content -->
-</div>
+  </div>
 
-<script>
+  <script>
 
-// Get the DIV with overlay effect
-var overlayBg = document.getElementById("myOverlay");
+    // Get the DIV with overlay effect
+    var overlayBg = document.getElementById("myOverlay");
 
-</script>
+  </script>
 
 </body>
+
 </html>

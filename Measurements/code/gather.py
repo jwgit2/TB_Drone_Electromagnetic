@@ -213,7 +213,7 @@ def start(comment, runningOnSector):
 
 
 def main():
-    start("Essai vol 2 sans EFM", True)
+    start("Essai vol 1 jour 2", True)
 
 if __name__ == "__main__":
     main()

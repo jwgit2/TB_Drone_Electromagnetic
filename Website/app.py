@@ -25,7 +25,7 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ DB_PATH + DB_NAME
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
-# Class to retrieve data from database
+# Classes to retrieve data from database
 class Measurements(db.Model):
     rowid = db.Column(db.Integer, primary_key=True)
     ID_MEASUREMENT_SET = db.Column(db.Integer)
@@ -57,7 +57,7 @@ def create_connection(db_file):
 def get_max_id_set():
     conn = create_connection(DB_PATH + DB_NAME)
     with open(DB_PATH + CREATE_TABLE) as f:
-        conn.execute(f.read())
+        conn.executescript(f.read())
     cursorObject = conn.cursor()
     cursorObject.execute("SELECT MAX(ID_MEASUREMENT_SET) FROM " + TABLE_NAME + ";")
     id = cursorObject.fetchone()[0]
@@ -98,7 +98,7 @@ def dlfulltset():
     #csvwriter.writerow()
         for m in measurements:
             csvwriter.writerow([m.ID_MEASUREMENT_SET, m.MEASUREMENT_DATETIME, m.MEASUREMENT_MS, m.COMMENT,\
-                m.RANGE_VM, m.RESISTOR, m.TEMPERATURE, m.PRESSURE, m.HUMIDITY, m.VOLTAGE_EFM])
+                m.RANGE_VM, m.RESISTOR, m.TEMPERATURE, m.PRESSURE, m.HUMIDITY, m.VOLTAGE_EFM, m.VOLTAGE_EFM * m.RANGE_VM / m.RESISTOR ])
     render_template('index.html', measurements=measurements)
     return send_file(
         f'./' + FULL_SET_NAME,\
@@ -116,7 +116,7 @@ def dllasttset():
         csvwriter = csv.writer(csvfile, delimiter = ',')
         for m in measurements:
             csvwriter.writerow([m.ID_MEASUREMENT_SET, m.MEASUREMENT_DATETIME, m.MEASUREMENT_MS, m.COMMENT,\
-                m.RANGE_VM, m.RESISTOR, m.TEMPERATURE, m.PRESSURE, m.HUMIDITY, m.VOLTAGE_EFM])
+                m.RANGE_VM, m.RESISTOR, m.TEMPERATURE, m.PRESSURE, m.HUMIDITY, m.VOLTAGE_EFM, m.VOLTAGE_EFM * m.RANGE_VM / m.RESISTOR ])
     render_template('index.html', measurements=measurements)
     return send_file(
         f'./' + LAST_SET_NAME,\
