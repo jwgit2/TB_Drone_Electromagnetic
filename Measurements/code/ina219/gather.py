@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-import time
+
 import board
 from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 

@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from xml.etree.ElementTree import Comment
-import RPi.GPIO as GPIO
 import EFM113B.gather as EFM
 import ina219.gather as INA
 import bme_280.gather as BME
@@ -11,9 +10,8 @@ import Ardusimple.gather as POS
 import os
 import sqlite3
 import threading
-import logging
 from subprocess import call
-###### AJOUTER LIMITEUR 9V ######
+
 ## Constants
 REF = 5.08                                      # Modify according to actual voltage
                                                 # external AVDD and AVSS(Default), or internal 2.5V
@@ -49,11 +47,11 @@ stop = False
 
 ## Functions
 def stop():
+    """ Update stop flag on input """
     global stop
     input("Press Enter to stop...")
     stop = True
 
-## Sleep function to set in millisecond
 def sleepMilliseconds(ms):
   """ Delay milliseconds using time.sleep(). """
   time.sleep(ms * 1e-3)
@@ -72,8 +70,8 @@ def create_connection(db_file):
         print(str(e))
     return conn
     
-## check bme measurements and stock them in global variables
 def read_bme():
+    """check bme measurements and stock them in global variables """
     # gather BME measurements
     global temperature
     global pressure
@@ -93,9 +91,8 @@ def read_bme():
             return 0
         sleepMilliseconds(MS_SLEEP_BME)
 
-##check ina measurement and stock them in global variable
 def read_ina():
-    # Check battery state through INA219 sensor
+    """check ina measurement and stock them in global variable"""
     global voltage_battery
     global VOLTAGE_BATTERY_THRESHOLD_DOWN
     global isSector
@@ -111,9 +108,9 @@ def read_ina():
             return 0
         sleepMilliseconds(MS_SLEEP_INA)
 
-## check efm measurements and stock them in global variable
 def read_efm():
-    # gather EFM measurement
+    """check efm measurements and stock them in global variable"""
+
     global voltage_AD
     global electric_field
     global range
@@ -129,8 +126,9 @@ def read_efm():
             print(str(e))
             return 0
         sleepMilliseconds(MS_SLEEP_EFM)
-## gather RTK position (in separate file)
+
 def read_pos(id, comment):
+    """gather RTK position (in separate file)"""
     global stop
     try :
         POS.get_position(id, comment)
@@ -144,8 +142,8 @@ def read_pos(id, comment):
         print(str(e))
         return 0
 
-## thread launchers for sensors data gathering
 def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
+    """thread launchers for sensors data gathering"""
     global resistor
     global RESISTOR
     global stop
@@ -187,6 +185,7 @@ def read_sensors(cursorObject, conn, id, input_resistor, input_range, comment):
     pos.join()
 
 def start(comment, runningOnSector):
+    """launch the measurement process """
     global isSector 
     isSector = runningOnSector
     EFM.AD_init()

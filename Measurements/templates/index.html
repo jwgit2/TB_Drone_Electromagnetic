@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="refresh" content="3">
+
+<head>
+  <title>EF Gatherer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    html,
+    body,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+      font-family: "Raleway", sans-serif
+    }
+  </style>
+</head>
+
+<body class="w3-light-grey">
+
+  <!-- Top container -->
+  <div class="w3-bar w3-top w3-black w3-large" style="z-index:4">
+    <span class="w3-bar-item w3-left">EF Gatherer</span>
+  </div>
+
+  <!-- !PAGE CONTENT! -->
+  <div class="w3-main" style="margin-left:10px;margin-top:43px;">
+
+    <!-- Header -->
+    <header class="w3-container" style="padding-top:22px">
+      <h5><b>Last recorded values :</b></h5>
+    </header>
+
+    <div class="w3-panel">
+      <div class="w3-row-padding" style="margin:0px">
+        <tr>
+          <td>
+            <button class="w3-button w3-dark-grey" onclick="location.href='/lastset';">Download last set <i
+                class="fa fa-download"></i>
+            </button>
+          </td>
+          <td>
+            <button class="w3-button w3-dark-grey" onclick="location.href='/fullset';">Download all sets <i
+                class="fa fa-download"></i>
+            </button>
+          </td>
+        </tr>
+        <hr>
+        <tr>
+          <td>
+            <button class="w3-button w3-red" onclick="location.href='/start';">Start recording <i
+                class="fa fa-paper-plane"></i></button>
+          </td>
+        </tr>
+      </div>
+      <hr>
+
+      <div class="Tab">
+        <table class="w3-table w3-striped w3-white w3-centered">
+          <tr>
+            <td><i class="fa fa-clock-o w3-text-dark-grey w3-large"></i></td>
+            <td><i class="fa fa-comment w3-text-dark-grey w3-large"></i></td>
+            <td><i class="fa fa-wifi w3-text-red w3-large"> [kV/m]</i></td>
+            <td><i class="fa fa-rebel w3-text-black w3-large"> [kΩ]</i></td>
+            <td><i class="fa fa-thermometer-half w3-text-red w3-large"> [°C]</i></td>
+            <td><i class="fa fa-cloud w3-text-blue w3-large"> [hPa]</i></td>
+            <td><i class="fa fa-shower w3-text-blue w3-large"> [%]</i></td>
+            <td><i class="fa fa-location-arrow w3-text-green w3-large"> X</i></td>
+            <td><i class="fa fa-location-arrow w3-text-green w3-large"> Y</i></td>
+            <td><i class="fa fa-location-arrow w3-text-green w3-large"> Z</i></td>
+            <td><i class="fa fa-bolt w3-text-yellow w3-large"> [V]</i></td>
+            <td><i class="fa fa-bolt w3-text-yellow w3-large"> E-field [kV/m]</i></td>
+          </tr>
+          {% for data in measurements %}
+          <tr>
+            <td><center>{{data.Measurements.MEASUREMENT_DATETIME}} - {{data.MEASUREMENT_MS}}</center></td>
+            <td><center>{{data.Measurements.COMMENT}}</center></td>
+            <td><center>{{data.Measurements.RANGE_VM}}</center></td>
+            <td><center>{{data.Measurements.RESISTOR}}</center></td>
+            <td><center>{{data.Measurements.TEMPERATURE}}</center></td>
+            <td><center>{{data.Measurements.PRESSURE}}</center></td>
+            <td><center>{{data.Measurements.HUMIDITY}}</center></td>
+            <td><center>{{data.Position.POSITION_X}}</center></td>
+            <td><center>{{data.Position.POSITION_Y}}</center></td>
+            <td><center>{{data.Position.POSITION_Z}}</center></td>
+            <td><center>{{"%.5f"|format(data.Measurements.VOLTAGE_EFM|float)}}</center></td>
+            <td><center>{{"%.2f"|format(data.Measurements.VOLTAGE_EFM * data.Measurements.RANGE_VM / data.Measurements.RESISTOR * 1000|float)}}</center></td>
+          </tr>
+          {% else %}
+          <h5>No data found</h5>
+          {% endfor%}
+        </table>
+      </div>
+    </div>
+  </div>
+  <hr>
+
+
+  <!-- Footer -->
+  <footer class="w3-container w3-padding-16 w3-light-grey">
+  </footer>
+
+  <!-- End page content -->
+  </div>
+
+  <script>
+
+    // Get the DIV with overlay effect
+    var overlayBg = document.getElementById("myOverlay");
+
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,1 @@
+This directory contains dedicated script to retrieve data from specific sensors. It was used to test the sensors before implementation in main programm
