@@ -4,7 +4,7 @@
 
 import time
 from datetime import datetime
-import EFM113B.ADS1263 as ADS1263
+import librairies.EFM113B.ADS1263 as ADS1263
 import RPi.GPIO as GPIO
 
 REF = 5.08          # Modify according to actual voltage

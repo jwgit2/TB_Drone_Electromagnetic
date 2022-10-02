@@ -3,10 +3,10 @@
 import time
 from datetime import datetime
 from xml.etree.ElementTree import Comment
-import EFM113B.gather as EFM
-import ina219.gather as INA
-import bme_280.gather as BME
-import Ardusimple.gather as POS
+import librairies.EFM113B.gather as EFM
+import librairies.ina219.gather as INA
+import librairies.bme_280.gather as BME
+import librairies.Ardusimple.gather as POS
 import os
 import sqlite3
 import threading

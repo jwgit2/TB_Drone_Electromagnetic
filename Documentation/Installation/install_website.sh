@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 sudo apt update
-sudo apt install python3.10-venv
+sudo apt install python3-venv
 sudo mkdir -p ../../Measurements/.venvs
 sudo python3 -m venv ../../Measurements/.venvs/flask
 cd ../../Measurements/
-sudo source ./.venvs/flask/bin/activate
+source ./.venvs/flask/bin/activate
